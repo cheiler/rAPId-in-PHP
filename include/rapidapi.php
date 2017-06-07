@@ -14,7 +14,6 @@ class rapidapi
 
     function __construct(){
         $this->debug = true;
-        print("Hello");
     }
 
     /**
@@ -25,22 +24,26 @@ class rapidapi
     private function debugger($msg)
     {
         if ($this->debug){
-            $msg = str_replace('"', '\\"', $msg);
-            echo "<script>console.log(\"$msg\")</script>";
+            if($this->debug){
+                $msg = str_replace('"', '\\"', $msg);
+                echo "<script>console.log(\"$msg\")</script>";
+
+            }
+
         }
 
     }
 
     public function getAuthHeader(){
         $epoch = time();
-        if ($this->debug){ $this->debugger("Timestamp: $epoch"); }
-
-
-
-
-        $authString = "yourString";
-
-        return $authString;
+        $this->debugger("Timestamp: $epoch");
+        $toEncode = $this->apiKey + $this->sharedSecret + $epoch;
+        $this->debugger("String to Encode: $toEncode");
+        $hash = hash('sha512',"$toEncode");
+        $this->debugger("Hash: $hash");
+        $auth_header_string = "EAN APIKey=". $this->apiKey . ",Signature=" . $hash . ",timestamp=" . $epoch;
+        $this->debugger("Authentication Header: $auth_header_string");
+        return $auth_header_string;
     }
 
 
