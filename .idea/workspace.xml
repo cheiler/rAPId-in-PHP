@@ -277,7 +277,7 @@
       <workItem from="1496841985756" duration="4767000" />
       <workItem from="1496941424643" duration="68000" />
       <workItem from="1497007115604" duration="17000" />
-      <workItem from="1497007226104" duration="6724000" />
+      <workItem from="1497007226104" duration="6757000" />
     </task>
     <task id="LOCAL-00001" summary="Added parameters to wrapper.&#10;Added getters and setters.&#10;Architecture of apiWrapper ready vor 0.1">
       <created>1497095157482</created>
@@ -286,11 +286,18 @@
       <option name="project" value="LOCAL" />
       <updated>1497095157482</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Added parameters to wrapper.&#10;Added getters and setters.&#10;Architecture of apiWrapper ready vor 0.1">
+      <created>1497095178539</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1497095178539</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="14895000" />
+    <option name="totallyTimeSpent" value="14928000" />
   </component>
   <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
