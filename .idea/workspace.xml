@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7b611919-2f84-432e-b427-55297df44cb8" name="Default" comment="Added parameters to wrapper.&#10;Added getters and setters.&#10;Architecture of apiWrapper ready vor 0.1">
+    <list default="true" id="7b611919-2f84-432e-b427-55297df44cb8" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/rapidapi.php" afterPath="$PROJECT_DIR$/include/rapidapi.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.php" afterPath="$PROJECT_DIR$/index.php" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -279,12 +277,20 @@
       <workItem from="1496841985756" duration="4767000" />
       <workItem from="1496941424643" duration="68000" />
       <workItem from="1497007115604" duration="17000" />
-      <workItem from="1497007226104" duration="6698000" />
+      <workItem from="1497007226104" duration="6724000" />
     </task>
+    <task id="LOCAL-00001" summary="Added parameters to wrapper.&#10;Added getters and setters.&#10;Architecture of apiWrapper ready vor 0.1">
+      <created>1497095157482</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1497095157482</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="14869000" />
+    <option name="totallyTimeSpent" value="14895000" />
   </component>
   <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
