@@ -14,6 +14,7 @@ $rapid->setApiKey("apiKey");
 $rapid->setSharedSecret("mySecret");
 
 
+
 $data = $rapid->getAuthHeader();
 
 
