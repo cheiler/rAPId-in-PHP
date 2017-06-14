@@ -24,6 +24,7 @@ class rapidapi
     private $sales_channel = "Website";
     private $sales_environment = "HOTEL_ONLY";
     private $sortType = "PREFERRED";
+    private $userAgent = "Don.t tellU 5.3";
 
     function __construct(){
         $this->debug = true;
@@ -38,8 +39,9 @@ class rapidapi
     {
         if ($this->debug){
             if($this->debug){
-                $msg = str_replace('"', '\\"', $msg);
-                echo "<script>console.log(\"$msg\")</script>";
+                #$msg = str_replace('"', '\\"', $msg);
+                #$msg = htmlentities($msg);
+                echo "\n<script>console.log('$msg')</script>\n";
 
             }
 
@@ -54,12 +56,13 @@ class rapidapi
      */
     public function getAuthHeader(){
         $epoch = time();
+        #$epoch = 1497349365;
         $this->debugger("Timestamp: $epoch");
         $toEncode = $this->apiKey . $this->sharedSecret . $epoch;
         $this->debugger("String to Encode: $toEncode");
         $hash = hash('sha512',"$toEncode");
         $this->debugger("Hash: $hash");
-        $auth_header_string = "EAN APIKey=". $this->apiKey . ",Signature=" . $hash . ",timestamp=" . $epoch;
+        $auth_header_string = "EAN apikey=". $this->apiKey . ",signature=" . $hash . ",timestamp=" . $epoch;
         $this->debugger("Authentication Header: $auth_header_string");
         return $auth_header_string;
     }
@@ -76,24 +79,33 @@ class rapidapi
         $header[] = "Authorization: ".$this->getAuthHeader();
         $header[] = "X-Forward-For: ".$this->xForward;
         $header[] = "Customer-Ip: ".$this->customerIP;
+        $header[] = "User-Agent: ".$this->userAgent;
+
         #TODO: Query Validation?
 
-        $url = $this->getBaseUrl()."/".$query;
+        $url = $this->getBaseUrl()."/".$this->version."/".$query;
 
         $this->debugger("Headers: ".print_r($header, true));
         $this->debugger("Method: $method");
         $this->debugger("URL: ".$url);
         $ch = curl_init();
         curl_setopt( $ch, CURLOPT_HTTPHEADER, $header );
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
         //curl_setopt($ch,CURLOPT_POST,5);
         //curl_setopt($ch,CURLOPT_POSTFIELDS,$XML);
         curl_setopt( $ch, CURLOPT_URL, $url );
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+        curl_setopt($ch,CURLOPT_ENCODING , "gzip");
+        echo "<br>curling<br>";
         $response = curl_exec($ch);
 
+        $info = curl_getinfo($ch);
+        $this->debugger("HTTP Status: ".print_r($info, true));
+
+        print_r($response);
         $response = json_decode($response);
 
+        print_r($response);
         return $response;
     }
 
@@ -115,6 +127,11 @@ class rapidapi
         foreach ($hotelIdArray as $hid) {
             $hotelIDparam .= "&property_id=".$hid;
         }
+        $url = $this->getBaseUrl()."/".$this->version."/";
+
+
+
+
         return (array)"This was shop";
     }
 
