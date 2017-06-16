@@ -115,9 +115,11 @@ class rapidapi
      * @name shop
      * @public
      * @param $hotelIdArray array
+     * @param $checkinDate string
+     * @param $checkoutDate string
      * @return array
      */
-    public function shop(array $hotelIdArray)
+    public function shop( $hotelIdArray )
     {
         $back = array("code" => 500, "msg" => "HotelIdArray must be an array");
         if (!is_array($hotelIdArray)) {
@@ -279,6 +281,9 @@ class rapidapi
      */
     public function setArrival($arrival)
     {
+        # ^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30)))$
+        $answer = preg_match("^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30)))$", $arrival);
+        #TODO: Finish validation
         $this->arrival = $arrival;
         return $this;
     }
@@ -424,6 +429,24 @@ class rapidapi
     public function setSortType($sortType)
     {
         $this->sortType = $sortType;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserAgent()
+    {
+        return $this->userAgent;
+    }
+
+    /**
+     * @param string $userAgent
+     * @return rapidapi
+     */
+    public function setUserAgent($userAgent)
+    {
+        $this->userAgent = $userAgent;
         return $this;
     }
 
