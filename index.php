@@ -6,6 +6,8 @@
  * Time: 18:53
  */
 
+echo "start";
+
 require_once ("include/rapidapi.php");
 
 
@@ -17,11 +19,12 @@ $rapid->setSharedSecret("csa6srhcg9ocb");
 
 $data = $rapid->getAuthHeader();
 
-echo "Hello: $data";
+#echo "Hello: $data";
 
+$api = $rapid->setArrival("2017-y-20");
 
-$api = $rapid->apiWrapper("GET",'regions/2114?language=en-US&include=DETAILS&include=PROPERTY_IDS&include=PROPERTY_IDS_EXPANDED');
-
+# $api = $rapid->apiWrapper("GET",'regions/2114?language=en-US&include=DETAILS&include=PROPERTY_IDS&include=PROPERTY_IDS_EXPANDED');
 
 print_r($api);
+
 

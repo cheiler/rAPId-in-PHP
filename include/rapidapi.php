@@ -132,9 +132,9 @@ class rapidapi
         $url = $this->getBaseUrl()."/".$this->version."/";
 
 
+        $call["url"] = $url;
 
-
-        return (array)"This was shop";
+        return $call;
     }
 
 
@@ -277,15 +277,17 @@ class rapidapi
 
     /**
      * @param mixed $arrival
-     * @return rapidapi
+     * @return boolean
      */
     public function setArrival($arrival)
     {
         # ^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30)))$
-        $answer = preg_match("^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30)))$", $arrival);
-        #TODO: Finish validation
-        $this->arrival = $arrival;
-        return $this;
+        $isDate = preg_match("/^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30)))$/", $arrival);
+        if($isDate){
+            $this->arrival = $arrival;
+            return TRUE;
+        }
+        return FALSE;
     }
 
     /**
@@ -298,12 +300,17 @@ class rapidapi
 
     /**
      * @param mixed $departure
-     * @return rapidapi
+     * @return boolean
      */
     public function setDeparture($departure)
     {
-        $this->departure = $departure;
-        return $this;
+        # ^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30)))$
+        $isDate = preg_match("/^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30)))$/", $departure);
+        if($isDate){
+            $this->departure = $departure;
+            return TRUE;
+        }
+        return FALSE;
     }
 
     /**
@@ -316,12 +323,17 @@ class rapidapi
 
     /**
      * @param string $currency
-     * @return rapidapi
+     * @return boolean
      */
     public function setCurrency($currency)
     {
-        $this->currency = $currency;
-        return $this;
+        # ^[A-Z]{3}$
+        $check = preg_match("/^[A-Z]{3}$/", $currency);
+        if($check){
+            $this->currency = $currency;
+            return TRUE;
+        }
+        return FALSE;
     }
 
     /**
@@ -334,12 +346,17 @@ class rapidapi
 
     /**
      * @param string $language
-     * @return rapidapi
+     * @return boolean
      */
     public function setLanguage($language)
     {
-        $this->language = $language;
-        return $this;
+        # ^[a-z]{2}-[A-Z]{2}$
+        $check = preg_match("/^[a-z]{2}-[A-Z]{2}$/", $language);
+        if($check){
+            $this->language = $language;
+            return TRUE;
+        }
+        return FALSE;
     }
 
     /**
@@ -352,12 +369,17 @@ class rapidapi
 
     /**
      * @param string $country
-     * @return rapidapi
+     * @return boolean
      */
     public function setCountry($country)
     {
-        $this->country = $country;
-        return $this;
+        # ^[A-Z]{2}$
+        $check = preg_match("/^[A-Z]{2}$/", $country);
+        if($check){
+            $this->country = $country;
+            return TRUE;
+        }
+        return FALSE;
     }
 
     /**
