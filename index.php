@@ -15,7 +15,7 @@ $rapid->setSharedSecret("mySecret");
 
 
 
-$data = $rapid->getAuthHeader();
+$data = $rapid->geoCatalog();
 
 
 echo "Hello: $data";

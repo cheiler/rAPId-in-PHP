@@ -119,6 +119,30 @@ class rapidapi
     }
 
 
+    /**
+     * @name geoCatalog
+     * @public
+     * @return object
+     */
+    public function geoCatalog()
+    {
+        $method="GET";
+        $path="files/properties/catalog";
+        if($response = $this->apiWrapper($method,$path)){
+            $this->debugger("Response retrieved");
+            $this->debugger($response);
+        } else {
+            $this->debugger("Response Error: Properties Catalog");
+            exit(503|"Response Error");
+        }
+
+        return $response;
+
+
+    }
+
+
+
 
     /**Getters and Setters
 
