@@ -3,16 +3,16 @@
 /**
  * Created by PhpStorm.
  * User: christianheiler
- * Date: 04/06/2017
+ * Date: 15/01/2019
  * Time: 18:52
  */
 class rapidapi
 {
     private $apiKey="";
     private $sharedSecret="";
-    private $baseUrl= "https://api.ean.com";
+    private $baseUrl= "https://test.ean.com";
     private $bookingUrl = " https://book.api.ean.com";
-    private $version = "2.1";
+    private $version = "2.2";
     private $customerIP = "128.0.0.1";
     private $xForward = "128.0.0.2";
     private $arrival;
@@ -25,7 +25,8 @@ class rapidapi
     private $sales_environment = "HOTEL_ONLY";
     private $sortType = "PREFERRED";
     private $userAgent = "Don.t tellU 5.3";
-    private $downloadPath = "../files/";
+    private $downloadPath = "./files/";
+    private $debug;
 
     function __construct(){
         $this->debug = true;
@@ -43,7 +44,14 @@ class rapidapi
             if($this->debug){
                 #$msg = str_replace('"', '\\"', $msg);
                 #$msg = htmlentities($msg);
-                echo "\n<script>console.log('$msg')</script>\n";
+                if(is_object($msg)){
+                    echo "\n";
+                    print_r($msg);
+                    echo "\n";
+                } else {
+                    echo "\n$msg\n";
+                }
+
 
             }
 
@@ -98,16 +106,14 @@ class rapidapi
         curl_setopt( $ch, CURLOPT_URL, $url );
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
         curl_setopt($ch,CURLOPT_ENCODING , "gzip");
-        echo "<br>curling<br>";
+        $this->debugger("curling");
         $response = curl_exec($ch);
 
         $info = curl_getinfo($ch);
         $this->debugger("HTTP Status: ".print_r($info, true));
 
-        print_r($response);
         $response = json_decode($response);
 
-        print_r($response);
         return $response;
     }
 
@@ -158,9 +164,52 @@ class rapidapi
         }
 
         return $response;
+    }
 
+    /**
+     * @param string $property_id
+     * @return object
+     */
+    public function tripadvisor($property_id){
+        $method="GET";
+        $path="properties/tripadvisor?property_id=$property_id";
+        if($response = $this->apiWrapper($method,$path)){
+            $this->debugger("Response retrieved");
+            $this->debugger($response);
+        } else {
+            $this->debugger("Response Error: Properties Catalog");
+            exit(503|"Response Error");
+        }
+        return $response;
+    }
+
+    /**
+     * @param array $property_ids
+     * @return bool|object
+     */
+    public function tripadvisor_multi($property_ids){
+        if(!is_array($property_ids)){
+            echo "ERROR input must be an array!\n";
+            return false;
+        }
+        $prop_list = "";
+        foreach($property_ids as $property_id){
+            $prop_list .= "property_id=$property_id&";
+        }
+        $method="GET";
+        $path="properties/tripadvisor?$prop_list";
+        if($response = $this->apiWrapper($method,$path)){
+            $this->debugger("Response retrieved");
+            $this->debugger($response);
+        } else {
+            $this->debugger("Response Error: Properties Catalog");
+            exit(503|"Response Error");
+        }
+        return $response;
 
     }
+
+
 
     /**
      * @param array $propertyId
@@ -218,7 +267,7 @@ class rapidapi
 
     }
 
-   /**
+    /**
      * @name download
      * @public
      * @param $url
@@ -299,7 +348,7 @@ class rapidapi
          * to get the content length.
          */
         $headers = array();
-        
+
         while(!feof($i_handle)) {
             $line = fgets($i_handle);
             if ($line == "\r\n") break;
@@ -344,8 +393,8 @@ class rapidapi
                 }
             }
 
-            	
-            
+
+
             /**
              * We're done reading when we've reached the conent length
              */
@@ -410,8 +459,8 @@ class rapidapi
         fclose($fp);
         return true;
     }
-    
-    
+
+
 
 
     /**Getters and Setters
@@ -747,8 +796,10 @@ class rapidapi
         return $this;
     }
 
-    
-
+    public function setDebug($value){
+        $this->debug = $value;
+        return $this;
+    }
 
 
 }
