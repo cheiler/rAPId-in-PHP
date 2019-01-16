@@ -12,8 +12,8 @@ require_once ("include/rapidapi.php");
 
 
 $rapid = new rapidapi();
-$rapid->setApiKey("5ji84kjgss19qcerldo0lhp93g");
-$rapid->setSharedSecret("csa6srhcg9ocb");
+$rapid->setApiKey("myAPIKEy");
+$rapid->setSharedSecret("YourSharedSecret");
 
 
 
