@@ -27,10 +27,27 @@ class rapidapi
     private $userAgent = "Don.t tellU 5.3";
     private $downloadPath = "./files/";
     private $debug;
+    private $include_plain_text = false;
+    private $follow_link = "";
+    private $request;
+    private $response;
+    private $allowed_methods = array("GET", "POST", "PUT", "DELETE");
+
 
     function __construct(){
-        $this->debug = true;
+        $this->debug = false;
         $this->downloadPath = trim($this->downloadPath);
+        $this->request = new stdClass();
+        $this->response = new stdClass();
+        $this->response->raw = "";
+        $this->response->header_plain = "";
+        $this->response->header = new stdClass();
+        $this->response->body_plain = "";
+        $this->response->body = new stdClass();
+        $this->request->method = "GET";
+        $this->request->path = "";
+        $this->request->body = "";
+        
     }
 
     /**
@@ -51,7 +68,6 @@ class rapidapi
                 } else {
                     echo "\n$msg\n";
                 }
-
 
             }
 
@@ -82,16 +98,23 @@ class rapidapi
      * @private
      * @param string $method
      * @param string $query
+     * @param string $payload
      * @return object
      */
-    public function apiWrapper($method, $query){
+    public function apiWrapper($method, $query, $payload=""){
         $header[] = "Accept: application/json";
         $header[] = "Authorization: ".$this->getAuthHeader();
         $header[] = "X-Forward-For: ".$this->xForward;
         $header[] = "Customer-Ip: ".$this->customerIP;
         $header[] = "User-Agent: ".$this->userAgent;
 
+
         #TODO: Query Validation?
+        $allowed_methods = array("GET", "POST", "PUT", "DELETE");
+        if(!in_array($method, $allowed_methods)){
+            $this->debugger("Method $method not in allowed methods. only allowed: GET, POST, PUT, DELETE");
+            return null;
+        }
 
         $url = $this->getBaseUrl()."/".$this->version."/".$query;
 
@@ -100,22 +123,93 @@ class rapidapi
         $this->debugger("URL: ".$url);
         $ch = curl_init();
         curl_setopt( $ch, CURLOPT_HTTPHEADER, $header );
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         //curl_setopt($ch,CURLOPT_POST,5);
-        //curl_setopt($ch,CURLOPT_POSTFIELDS,$XML);
+
+        if($payload != ""){
+            curl_setopt($ch,CURLOPT_POSTFIELDS,$payload);
+        }
+
         curl_setopt( $ch, CURLOPT_URL, $url );
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
         curl_setopt($ch,CURLOPT_ENCODING , "gzip");
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_NOBODY, false);
         $this->debugger("curling");
         $response = curl_exec($ch);
 
         $info = curl_getinfo($ch);
         $this->debugger("HTTP Status: ".print_r($info, true));
 
-        $response = json_decode($response);
+        //$response = json_decode($response);
 
+        $this->debugger($response);
+
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $header = substr($response, 0, $header_size);
+        $body = substr($response, $header_size);
+
+        $back = new stdClass();
+
+        if($this->include_plain_text){
+            $back->header_text = $header;
+            $back->body_text = $body;
+        }
+
+        $header_array_response = $this->make_header_array($header);
+        $back->header = $header_array_response->header;
+        $back->body = json_decode($body);
+        $back->status = $header_array_response->status;
+        $back->status_message = $header_array_response->status_message;
+
+        //set internal variables
+        $this->response->header_plain = $header;
+        $this->response->header = $back->header;
+        $this->response->body_plain = $body;
+        $this->response->body = $back->body;
+        $this->response->status = $back->status;
+        $this->response->status_message = $back->status_message;
+
+        return $back;
+    }
+
+
+
+
+    public function send_request(){
+        $allowed_methods = array("GET", "POST", "PUT", "DELETE");
+        if(!in_array($this->request->method, $allowed_methods)){
+            $this->debugger("Method ".$this->request->method." not in allowed methods. only allowed: GET, POST, PUT, DELETE");
+            $this->setError(503, "Method now allowed: $this->request->method");
+            return null;
+        }
+        if($this->request->path==""){
+            $this->debugger("Request Path empty");
+            $this->setError(503, "Request path can't be empty");
+            return null;
+        }
+        $this->debugger("Requesting: ".$this->request->method." Path: ".$this->request->path);
+        $response = $this->apiWrapper($this->request->method, $this->request->path, $this->request->body);
         return $response;
     }
+
+
+    /**
+     * @param $error_code
+     * @param $error_message
+     * @return bool
+     */
+    private function setError($error_code, $error_message){
+        $this->debugger("Set Error: $error_code - $error_message");
+        $this->response->header = "";
+        $this->response->header_plain = "";
+        $this->response->body = new stdClass();
+        $this->response->body_plain = "";
+        $this->response->status = $error_code;
+        $this->response->status_message = $error_message;
+        return true;
+    }
+
 
 
 
@@ -123,8 +217,6 @@ class rapidapi
      * @name shop
      * @public
      * @param $hotelIdArray array
-     * @param $checkinDate string
-     * @param $checkoutDate string
      * @return array
      */
     public function shop( $hotelIdArray )
@@ -221,8 +313,6 @@ class rapidapi
     }
 
 
-
-
     /**
      * @name contentCatalog
      * @public
@@ -243,7 +333,6 @@ class rapidapi
         return $response;
 
     }
-
 
     /**
      * @name contentComplete
@@ -406,6 +495,44 @@ class rapidapi
         return $cnt;
     }//END copyfile_chunked
 
+
+    /**
+     * @param $header_plain_text
+     * @return stdClass
+     */
+    private function make_header_array($header_plain_text){
+        $header_array = array();
+
+        $header_array=explode("\n", $header_plain_text);
+        $head_clean = array();
+
+        $back = new stdClass();
+        $back->header = new stdClass();
+
+        foreach($header_array as $line){
+            if(substr($line,0,5) == "HTTP/"){
+                $value = explode(" ", $line);
+                $back->status = $value[1];
+                $back->status_message = $value[2];
+            } else {
+                $value = explode(":", $line, 2);
+                if($value[0] != ""){
+                    $head_clean[$value[0]] = trim($value[1]);
+                    $back->header->{$value[0]} = trim($value[1]);
+                    if($value[0] == "Link"){
+                        $link_start = strpos($value[1], "<")+1;//adding 1 to exclude "<" sign
+                        $link_length = strpos($value[1], ">")-$link_start;//
+                        $back->Link = new stdClass();
+                        $back->Link->href = substr($value[1], $link_start, $link_length);
+                        $this->follow_link = $back->Link->href;
+                    }
+                }
+            }
+
+        }
+
+        return $back;
+    }
 
     /**
      * @param $current
@@ -800,6 +927,115 @@ class rapidapi
         $this->debug = $value;
         return $this;
     }
+
+    /**
+     * @return bool
+     */
+    public function isIncludePlainText()
+    {
+        return $this->include_plain_text;
+    }
+
+    /**
+     * @param bool $include_plain_text
+     */
+    public function setIncludePlainText($include_plain_text)
+    {
+        $this->include_plain_text = $include_plain_text;
+    }
+    /**
+     * @return string
+     */
+    public function getRequestMethod()
+    {
+        return $this->request->method;
+    }
+
+    /**
+     * @param string $requestMethod
+     * @return boolean
+     */
+    public function setRequestMethod($requestMethod)
+    {
+        if(in_array($requestMethod, $this->allowed_methods)){
+            $this->request->method = $requestMethod;
+            return true;
+        }
+        return false;
+
+    }
+
+    /**
+     * @return string
+     */
+    public function getRequestPath()
+    {
+        return $this->request->path;
+    }
+
+    /**
+     * @param string $requestPath
+     * @return rapidapi
+     */
+    public function setRequestPath($requestPath)
+    {
+        $this->request->path = $requestPath;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRequestBody()
+    {
+        return $this->request->body;
+    }
+
+    /**
+     * @param string $requestBody
+     * @return rapidapi
+     */
+    public function setRequestBody($requestBody)
+    {
+        $this->request->body = $requestBody;
+        return $this;
+    }
+
+    //GETTERS for responses.
+
+    /**
+     * @return string
+     */
+    public function getResponseBody()
+    {
+        return $this->response->body;
+    }
+    //short
+    /**
+     * @return string
+     */
+    public function body()
+    {
+        return $this->response->body;
+    }
+
+    /**
+     * @return string
+     */
+    public function getResponseHeader()
+    {
+        return $this->response->header;
+    }
+    /**
+     * @return string
+     */
+    public function head()
+    {
+        return $this->response->header;
+    }
+
+
+
 
 
 }

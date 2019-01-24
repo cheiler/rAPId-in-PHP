@@ -9,22 +9,37 @@
 echo "start";
 
 require_once ("include/rapidapi.php");
+include_once ("./config/config.php");
 
 
 $rapid = new rapidapi();
-$rapid->setApiKey("myAPIKEy");
-$rapid->setSharedSecret("YourSharedSecret");
+$rapid->setApiKey($cfg['apikey']);
+$rapid->setSharedSecret($cfg['secret']);
+$rapid->setDebug(false);
+$rapid->setIncludePlainText(false);
 
 
 
-$data = $rapid->geoCatalog();
+//$data = $rapid->geoCatalog();
+//$data = $rapid->geoCatalog();
 
 #echo "Hello: $data";
 
 $api = $rapid->setArrival("2017-y-20");
 
-# $api = $rapid->apiWrapper("GET",'regions/2114?language=en-US&include=DETAILS&include=PROPERTY_IDS&include=PROPERTY_IDS_EXPANDED');
+//$api = $rapid->apiWrapper("GET",'properties/content?language=en-US&updated=2019-01-21');
 
-print_r($api);
+$rapid->setRequestMethod("GET");
+
+$rapid->setRequestPath("properties/content?language=en-US&updated=2019-01-21");
+
+$api = $rapid->send_request();
 
 
+
+//print_r($api);
+
+//print_r($api->header);
+//print_r($api->header_text);
+
+print_r($rapid->head());
