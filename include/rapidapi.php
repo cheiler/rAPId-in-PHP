@@ -51,7 +51,6 @@ class rapidapi
     }
 
     /**
-     * @name debugger
      * @param $msg
      * @internal
      */
@@ -59,8 +58,6 @@ class rapidapi
     {
         if ($this->debug){
             if($this->debug){
-                #$msg = str_replace('"', '\\"', $msg);
-                #$msg = htmlentities($msg);
                 if(is_object($msg)){
                     echo "\n";
                     print_r($msg);
@@ -76,7 +73,6 @@ class rapidapi
     }
 
     /**
-     * @name getAuthHeader
      * @public
      * @return string
      */
@@ -94,24 +90,25 @@ class rapidapi
     }
 
     /**
-     * @name apiWrapper
      * @private
      * @param string $method
      * @param string $query
      * @param string $payload
      * @return object
      */
-    public function apiWrapper($method, $query, $payload=""){
+    public function apiWrapper($method, $query, $payload="", $payload_type=null){
         $header[] = "Accept: application/json";
         $header[] = "Authorization: ".$this->getAuthHeader();
         $header[] = "X-Forward-For: ".$this->xForward;
         $header[] = "Customer-Ip: ".$this->customerIP;
         $header[] = "User-Agent: ".$this->userAgent;
+        if($payload_type != null){
+            $header[] = "Content-Type: ".$payload_type;
+        }
 
 
-        #TODO: Query Validation?
-        $allowed_methods = array("GET", "POST", "PUT", "DELETE");
-        if(!in_array($method, $allowed_methods)){
+
+        if(!in_array($method, $this->allowed_methods)){
             $this->debugger("Method $method not in allowed methods. only allowed: GET, POST, PUT, DELETE");
             return null;
         }
@@ -214,7 +211,6 @@ class rapidapi
 
 
     /**
-     * @name shop
      * @public
      * @param $hotelIdArray array
      * @return array
@@ -239,7 +235,6 @@ class rapidapi
 
 
     /**
-     * @name geoCatalog
      * @public
      * @return object
      */
@@ -301,21 +296,80 @@ class rapidapi
 
     }
 
-
-
     /**
-     * @param array $propertyId
-     * @param string $locale
+     *
      */
-    public function property(array $propertyId, $locale = "en-US"){
-        $method="GET";
-        $path="files/properties/catalog?language=$language";
+    public function polygon($json){
+        //Basic validation
+        if(!is_object($json)){
+            $this->setError(415, "Input is not an object");
+            return false;
+        }
+        if(!isset($json->type) && $json->type = "Polygon"){
+            $this->setError(415, "Type is not set as `Polygon`, with correct casing");
+            return false;
+        }
+        if(!isset($json->coordinates) && is_array($json->coordiantes)){
+            $this->setError(415, "`coordinates` not set or not an array");
+            return false;
+        }
+        if(count($json->coordinates) != 1){
+            $this->setError(415, "Rapid API only supports single Polygons, you have send ".count($json->coordiantes));
+            return false;
+        }
+        //check if closed
+        $length = count($json->coordinates[0]);
+        if($length < 4){
+            $this->setError(415, "A correctly formed polygon has at least 4 coordinates, with the last one the same as the first to cloe the polygon, you supplied only $length coordinates");
+            return false;
+        }
+        if($json->coordiantes[0][0] != $json->coordiantes[0][$length-1]){
+            $this->setError(415, "First and last polygon element must be identical");
+            return false;
+        }
+        $this->debugger("Polygon - All tests passed, going to call Rapid");
+
+        return $this->apiWrapper("POST", "properties/geography?include=property_ids", json_encode($json), "application/json");
+
     }
 
 
     /**
-     * @name contentCatalog
+     * @param array $propertyIds
+     * @param string $locale
+     * @return boolean
+     */
+    public function property(array $propertyIds, $locale = "en-US"){
+        if(!is_array($propertyIds)){
+            $this->setError(503, "propertyIds must be an array");
+            $this->debugger("property Ids not set as an array in function property");
+            return false;
+        } elseif (count($propertyIds) >= 251){
+            $this->setError(503, "propertyIds array contains more than 250 entries");
+            $this->debugger("property Ids array contains more than 250 entries.");
+            return false;
+        }
+
+        $method="GET";
+        $path="files/properties/catalog?language=$locale";
+        $property_id_string = "";
+        foreach ($propertyIds as $property_id){
+            $property_id_string .= "&property_id=".$property_id;
+        }
+        $return_path = $path.$property_id_string;
+
+        $this->setRequestMethod($method);
+        $this->setRequestPath($return_path);
+        $this->setRequestBody("");
+
+        return true;
+
+    }
+
+
+    /**
      * @public
+     * @param string $language
      * @return object
      */
     public function contentCatalog($language = "en-US")
@@ -335,8 +389,8 @@ class rapidapi
     }
 
     /**
-     * @name contentComplete
      * @public
+     * @param string $language
      * @return object
      */
     public function contentComplete($language = "en-US")
@@ -357,7 +411,6 @@ class rapidapi
     }
 
     /**
-     * @name download
      * @public
      * @param $url
      * @param $file
@@ -394,7 +447,6 @@ class rapidapi
 
 
     /**
-     * @name: copyfile_chunked
      * Copy remote file over HTTP one small chunk at a time.
      *
      * @param $infile String The full URL to the remote file
@@ -461,10 +513,9 @@ class rapidapi
          * local file one chunk at a time.
          */
         $cnt = 0;
-        $counter = 0;
         $old = 0;
         while(!feof($i_handle)) {
-            $buf = '';
+
             $buf = fread($i_handle, $chunksize);
             $bytes = fwrite($o_handle, $buf);
             if ($bytes == false) {
@@ -501,9 +552,7 @@ class rapidapi
      * @return stdClass
      */
     private function make_header_array($header_plain_text){
-        $header_array = array();
-
-        $header_array=explode("\n", $header_plain_text);
+        $header_array = explode("\n", $header_plain_text);
         $head_clean = array();
 
         $back = new stdClass();
@@ -560,8 +609,6 @@ class rapidapi
 
 
     /**
-     * @name uncompress
-     * @public
      * @param $source
      * @param $target
      * @return bool
