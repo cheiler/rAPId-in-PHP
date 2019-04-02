@@ -366,6 +366,33 @@ class rapidapi
 
     }
 
+    /**
+     * @param $region_id
+     * @param string $language
+     * @param bool $details
+     * @param bool $properties
+     * @param bool $properties_expanded
+     * @return bool
+     */
+    public function regionId($region_id, $language = "end-US", $details = true, $properties = true, $properties_expanded = true){
+        //At least one include must be true;
+        if(!$details && !$properties && !$properties_expanded){
+            $this->setError(400, "At least one of the include parameters must be true");
+            return false;
+        }
+
+        $this->setRequestMethod("GET");
+
+        $path = "regions/$region_id?language=$language";
+        $path .= ($details ? "&include=details" : "");
+        $path .= ($properties ? "&include=property_ids" : "");
+        $path .= ($properties_expanded ? "&include=property_ids_expanded" : "");
+
+        $this->setRequestPath($path);
+
+        return true;
+
+    }
 
     /**
      * @public

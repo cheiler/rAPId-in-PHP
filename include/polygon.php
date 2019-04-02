@@ -13,6 +13,8 @@ class polygon
     private $debug;
     private $report = array();
 
+    public $bounding;
+
     public function __construct()
     {
         $this->debug = false;
@@ -68,7 +70,10 @@ class polygon
     }
 
 
-
+    /**
+     * @param $polygon_name
+     * @return bool
+     */
     public function close($polygon_name){
         if(!isset($this->inner_array[$polygon_name])){
             $this->debugger("Polygon $polygon_name does not exist, pleae create the polygon first.");
@@ -82,7 +87,9 @@ class polygon
         return true;
     }
 
-
+    /**
+     * @return stdClass
+     */
     public function get_geoJson(){
         $this->outer_array = array();
         foreach($this->inner_array as $inner){
@@ -106,5 +113,47 @@ class polygon
         return json_encode($json,JSON_PRETTY_PRINT);
     }
 
+
+    public function get_bounding_rectangle($polygon_name){
+        if(!isset($this->inner_array[$polygon_name])){
+            return false;
+        }
+        $polygon = $this->inner_array[$polygon_name];
+        //set point 0 as the starting point
+        $lat_max = $lat_min = $polygon[0]["lat"];
+        $long_max = $long_min = $polygon[0]["long"];
+
+
+        //compare coordinates
+        foreach($polygon as $point){
+            $lat_max = ($point["lat"] > $lat_max) ? $point["lat"] : $lat_max;
+            $lat_min = ($point["lat"] < $lat_min) ? $point["lat"] : $lat_min;
+            $long_max = ($point["long"] > $long_max) ? $point["long"] : $long_max;
+            $long_min = ($point["long"] < $long_min) ? $point["long"] : $long_min;
+        }
+
+        $bounding_polygon = new polygon();
+        $bounding_polygon-> setDebug(true);
+        $bounding_polygon->create("bounding");
+        $bounding_polygon->add_point("bounding",$lat_min,$long_min);
+        $bounding_polygon->add_point("bounding",$lat_max,$long_min);
+        $bounding_polygon->add_point("bounding",$lat_max,$long_max);
+        $bounding_polygon->add_point("bounding",$lat_min,$long_max);
+        $bounding_polygon->close("bounding");
+
+        $this->bounding = $bounding_polygon;
+
+        return $bounding_polygon->get_geoString();
+
+    }
+
+
+
+    /**
+     * @param $set
+     */
+    public function setDebug($set){
+        $this->debug = $set;
+    }
 
 }
