@@ -434,8 +434,29 @@ class rapidapi
         }
 
         return $response;
-
     }
+    
+    public function initGeoPagination($startRegion = 0, $details = true, $properties = true, $properties_expanded=true){
+        $path = "regions?language=".$this->language;
+        if($details){
+            $path .= "&include=details";
+        }
+        if($properties){
+            $path .= "&include=property_ids";
+        }
+        if($properties_expanded){
+            $path .= "&include=property_ids_expanded";
+        }
+
+        if($startRegion != 0){
+            $path .= "&ancestor_id=".$startRegion;
+        }
+        $this->request->path = $path;
+
+        return true;
+    }
+    
+    
 
     /**
      * @public
