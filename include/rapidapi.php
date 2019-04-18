@@ -96,16 +96,12 @@ class rapidapi
      * @param string $payload
      * @return object
      */
-    public function apiWrapper($method, $query, $payload="", $payload_type=null){
+    public function apiWrapper($method, $query, $payload="", $isRelative = true){
         $header[] = "Accept: application/json";
         $header[] = "Authorization: ".$this->getAuthHeader();
         $header[] = "X-Forward-For: ".$this->xForward;
         $header[] = "Customer-Ip: ".$this->customerIP;
         $header[] = "User-Agent: ".$this->userAgent;
-        if($payload_type != null){
-            $header[] = "Content-Type: ".$payload_type;
-        }
-
 
 
         if(!in_array($method, $this->allowed_methods)){
@@ -113,7 +109,11 @@ class rapidapi
             return null;
         }
 
-        $url = $this->getBaseUrl()."/".$this->version."/".$query;
+        if($isRelative) {
+            $url = $this->getBaseUrl()."/".$this->version."/".$query;
+        } else {
+            $url = $query;
+        }
 
         $this->debugger("Headers: ".print_r($header, true));
         $this->debugger("Method: $method");
@@ -186,9 +186,20 @@ class rapidapi
             return null;
         }
         $this->debugger("Requesting: ".$this->request->method." Path: ".$this->request->path);
-        $response = $this->apiWrapper($this->request->method, $this->request->path, $this->request->body);
+        //check if path is relative;
+        $first_four = substr($this->request->path,0,4);
+
+        if($first_four == "http"){
+            $relative = false;
+        } else {
+            $relative = true;
+        }
+
+        $response = $this->apiWrapper($this->request->method, $this->request->path, $this->request->body, "$relative");
         return $response;
     }
+    
+
 
 
     /**
