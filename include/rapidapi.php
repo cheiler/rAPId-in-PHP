@@ -456,6 +456,22 @@ class rapidapi
         return true;
     }
     
+     /**
+     * sets the URL to get to
+     * @return bool
+     */
+    public function follow(){
+        $this->debugger("Follow Link Content: --".$this->follow_link."--");
+        if($this->follow_link == ""){
+            $this->debugger("follow link empty, can't follow");
+            return false;
+        } else {
+            $this->request->path = $this->follow_link;
+            $this->debugger("follow link is set, ready.");
+            return true;
+        }
+    }
+    
     
 
     /**
